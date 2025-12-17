@@ -1,0 +1,53 @@
+# Description
+
+This tool helps to remove offline assets from Immich.
+
+Assets are uploaded in Immich in the internal path `/usr/src/app/upload/library/...`. Sometimes, I like to move some of these assets to specific folder in my external library. But these assets are still in the database, their thumbnails/encoded version are still there, they does not disappear from the webapp.
+
+This tool browses the database for assets beginning by `/usr/src/app/upload/library/`, tests if the file still exists, if it's not the case, it calls Immich API to put it in the trash. Files in the Immich trash can be manually removed from the webapp or it will be automatically after a period (30 days by default).
+
+
+# Usage
+
+Open your `docker-compose.yml` with your immich stack and add the following service:
+
+```yaml
+immich-offline-remover:
+    image: redvm/immich-offline-remover:latest
+    container_name: immich_offline_remover
+    hostname: immich_offline_remover
+    env_file:
+        - .env
+    environment:
+        DB_HOSTNAME: immich_postgres 
+        DRY_RUN: "false"
+        RUN_AT_FIRST_STARTUP: "true"
+        CRON_EXPRESSION: "0 3 * * *"
+        MAX_MISSING_RATIO: "0.1"
+        IMMICH_URL: http://immich-server:2283
+        IMMICH_API_KEY: <YOUR-API-KEY>
+    restart: unless-stopped
+    volumes:
+        - ${UPLOAD_LOCATION}:/usr/src/app/upload:ro
+```
+
+This image should be in the same network as other immich containers, and it needs the same `.env`.
+
+Specific env var needed by the container:
+
+| Env var | Description |
+| --- | --- |
+| DB_HOSTNAME | Hostname of the container running the Immich DB |
+| DRY_RUN | If set to "true", no changes will be made to Immich |
+| RUN_AT_FIRST_STARTUP | If set to "true", the script will run once at startup (and still follow the CRON_EXPRESSION for the next runs) |
+| CRON_EXPRESSION | Cron expression for scheduled runs (e.g., "0 3 * * *" for 3 AM daily) |
+| MAX_MISSING_RATIO | Maximum ratio of missing files allowed (e.g., "0.1" for 10%). If the ratio is exceeded, the script will exit without making any changes. It serves as a safeguard.  |
+| IMMICH_URL | URL of the Immich instance (e.g., "http://immich-server:2283") |
+| IMMICH_API_KEY | API key for Immich authentication |
+
+
+
+Note: This tool assumes that there is a database named `immich`, with a table named `asset` with 3 columns `id`,  `originalPath`, and `deletedAt`.
+It assumes that `originalPath` contains the full path to the asset on the filesystem, and that `deletedAt` is null for active assets (non-null for trashed assets). 
+
+It assumes that we can send a `DELETE` request to the `/api/assets` endpoint of immich-server with a list of assets ids to trash them.
