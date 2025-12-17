@@ -2,9 +2,15 @@
 
 This tool helps to remove offline assets from Immich.
 
-Assets are uploaded in Immich in the internal path `/usr/src/app/upload/library/...`. Sometimes, I like to move some of these assets to specific folder in my external library. But these assets are still in the database, their thumbnails/encoded version are still there, they does not disappear from the webapp.
+Assets are uploaded in Immich in the internal path `/usr/src/app/upload/library/...`. Sometimes, I like to move some of these assets to specific folder in my external library. But these assets are still in the database, their thumbnails/encoded version are still there, therefore they does not disappear from the webapp.
 
 This tool browses the database for assets beginning by `/usr/src/app/upload/library/`, tests if the file still exists, if it's not the case, it calls Immich API to put it in the trash. Files in the Immich trash can be manually removed from the webapp or it will be automatically after a period (30 days by default).
+
+
+If immich changes the API endpoint specification, this tool might not work anymore. This tool is not officially supported by Immich and is provided as-is.
+
+Tested Immich Version: `v2.3.1`. After manually emptying the trash, the thumbs (and encoded video if any) are correctly removed, even if the original asset is already deleted.
+
 
 
 # Usage
@@ -26,9 +32,11 @@ immich-offline-remover:
         MAX_MISSING_RATIO: "0.1"
         IMMICH_URL: http://immich-server:2283
         IMMICH_API_KEY: <YOUR-API-KEY>
-    restart: unless-stopped
     volumes:
         - ${UPLOAD_LOCATION}:/usr/src/app/upload:ro
+    depends_on:
+      - database
+    restart: unless-stopped
 ```
 
 This image should be in the same network as other immich containers, and it needs the same `.env`.
