@@ -21,10 +21,9 @@ def get_assets():
     db = os.getenv("DB_DATABASE_NAME", "immich")
     user = os.getenv("DB_USERNAME", "postgres")
     pw = os.getenv("DB_PASSWORD", "postgres")
+    prefix = os.getenv("IMMICH_UPLOAD_PATH","/usr/src/app/upload/library/%")
     
-    conn_str = f"host={host} dbname={db} user={user} password={pw}"
-    prefix = '/usr/src/app/upload/library/%'
-    
+    conn_str = f"host={host} dbname={db} user={user} password={pw}"  
     
     query = 'SELECT id, "originalPath" FROM asset WHERE "originalPath" LIKE %s AND "deletedAt" IS NULL'
     
