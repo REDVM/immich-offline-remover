@@ -23,16 +23,20 @@ def get_assets():
     pw = os.getenv("DB_PASSWORD", "postgres")
     
     conn_str = f"host={host} dbname={db} user={user} password={pw}"
-    prefix = '/usr/src/app/upload/library/%'
     
+    path_patterns = os.getenv("IMMICH_UPLOAD_PATH", "/usr/src/app/upload/library/%")
+    patterns = [p.strip() for p in path_patterns.split(',')]
     
     query = 'SELECT id, "originalPath" FROM asset WHERE "originalPath" LIKE %s AND "deletedAt" IS NULL'
     
+    all_assets = []
     try:
         with psycopg.connect(conn_str) as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (prefix,))
-                return cur.fetchall()
+                for pattern in patterns:
+                    cur.execute(query, (pattern,))
+                    all_assets.extend(cur.fetchall())
+        return all_assets
     except Exception as e:
         logger.error(f"DB Error: {e}")
         return []
