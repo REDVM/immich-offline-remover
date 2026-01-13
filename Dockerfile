@@ -3,9 +3,10 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvbin/uv
 
 
 WORKDIR /app
-COPY src/*.py .
 
-# Installation des dépendances
-RUN /uvbin/uv pip install --system psycopg[binary] requests apscheduler loguru
+COPY src/pyproject.toml src/uv.lock ./
+RUN /uvbin/uv sync --frozen --no-dev
 
-CMD ["python", "main.py"]
+COPY src/*.py ./
+
+CMD ["/uvbin/uv", "run", "--no-sync", "python", "main.py"]

@@ -1,5 +1,5 @@
 import os
-import time
+import signal
 import sys
 
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -100,6 +100,10 @@ if __name__ == "__main__":
     scheduler.add_job(delete_offline_assets, CronTrigger.from_crontab(cron_expr))
     
     logger.info(f"Immich Offline Remover started. Cron: {cron_expr}")
+    
+    # Signal handling to stop docker immediately (no 10s timeout)
+    signal.signal(signal.SIGTERM, lambda sn, frame: scheduler.shutdown(wait=False))
+    signal.signal(signal.SIGINT, lambda sn, frame: scheduler.shutdown(wait=False))
     
     run_at_first_startup = os.getenv("RUN_AT_FIRST_STARTUP", "false").lower() == "true"
     if run_at_first_startup:

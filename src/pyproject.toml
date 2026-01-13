@@ -3,7 +3,10 @@ name = "src"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = "==3.12.*"
 dependencies = [
-    "psycopg>=3.2.13",
+    "apscheduler>=3.11.2",
+    "loguru>=0.7.3",
+    "psycopg[binary]>=3.2.13",
+    "requests>=2.32.4",
 ]
