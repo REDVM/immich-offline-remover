@@ -25,13 +25,12 @@ immich-offline-remover:
     env_file:
         - .env
     environment:
-        DB_HOSTNAME: immich_postgres 
-        DRY_RUN: "false"
-        RUN_AT_FIRST_STARTUP: "true"
-        CRON_EXPRESSION: "0 3 * * *"
-        MAX_MISSING_RATIO: "0.1"
         IMMICH_URL: http://immich-server:2283
         IMMICH_API_KEY: <YOUR-API-KEY>
+        CRON_EXPRESSION: "0 3 * * *"
+        DRY_RUN: "false"
+        RUN_AT_FIRST_STARTUP: "true"
+        MAX_MISSING_RATIO: "0.1"
     volumes:
         - ${UPLOAD_LOCATION}:/usr/src/app/upload:ro
     depends_on:
@@ -39,20 +38,22 @@ immich-offline-remover:
     restart: unless-stopped
 ```
 
-This image should be in the same network as other immich containers, and it needs the same `.env`.
 
-Specific env var needed by the container:
+Specific env var used by the container:
 
-| Env var | Description |
-| --- | --- |
-| DB_HOSTNAME | Hostname of the container running the Immich DB |
-| DRY_RUN | If set to "true", no changes will be made to Immich |
-| RUN_AT_FIRST_STARTUP | If set to "true", the script will run once at startup (and still follow the CRON_EXPRESSION for the next runs) |
-| CRON_EXPRESSION | Cron expression for scheduled runs (e.g., "0 3 * * *" for 3 AM daily) |
-| MAX_MISSING_RATIO | Maximum ratio of missing files allowed (e.g., "0.1" for 10%). If the ratio is exceeded, the script will exit without making any changes. It serves as a safeguard.  |
-| IMMICH_URL | URL of the Immich instance (e.g., "http://immich-server:2283") |
-| IMMICH_API_KEY | API key for Immich authentication |
-
+| Variable | Default Value | Description |
+| :--- | :--- | :--- |
+| IMMICH_URL | *None* | URL of the Immich instance (e.g., "http://immich-server:2283") |
+| IMMICH_API_KEY | *None* | API key for Immich authentication |
+| CRON_EXPRESSION | `0 3 * * *` | Cron expression for scheduled runs (e.g., `0 3 * * *` for 3 AM daily) |
+| DRY_RUN | `true` | If set to `true`, no changes will be made to Immich |
+| MAX_MISSING_RATIO | `0.1` | Maximum ratio of missing files allowed (e.g., `0.1` for 10%). If the ratio is exceeded, the script will exit without making any changes. It serves as a safeguard. |
+| RUN_AT_FIRST_STARTUP | `false` | If set to `true`, the script will run once at startup (and still follow the CRON_EXPRESSION for the next runs) |
+| IMMICH_UPLOAD_PATH | `/usr/src/app/upload/library/%` | SQL pattern (comma separated) to match asset paths in DB. |
+| DB_HOSTNAME | `localhost` | Hostname of the container running the Immich DB |
+| DB_DATABASE_NAME | `immich` | Name of the database |
+| DB_USERNAME | `postgres` | Database user |
+| DB_PASSWORD | `postgres` | Database password |
 
 
 Note: This tool assumes that there is a database named `immich`, with a table named `asset` with 3 columns `id`,  `originalPath`, and `deletedAt`.
