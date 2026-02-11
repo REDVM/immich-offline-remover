@@ -17,12 +17,13 @@ logger.add(
 
 
 def get_assets():
-    host = os.getenv("DB_HOSTNAME", "localhost")
+    host = os.getenv("DB_HOSTNAME", "immich_postgres")
+    port = os.getenv("DB_PORT", "5432")
     db = os.getenv("DB_DATABASE_NAME", "immich")
     user = os.getenv("DB_USERNAME", "postgres")
     pw = os.getenv("DB_PASSWORD", "postgres")
     
-    conn_str = f"host={host} dbname={db} user={user} password={pw}"
+    conn_str = f"host={host} port={port} dbname={db} user={user} password={pw}"
     
     path_patterns = os.getenv("IMMICH_UPLOAD_PATH", "/usr/src/app/upload/library/%")
     patterns = [p.strip() for p in path_patterns.split(',')]
@@ -37,6 +38,17 @@ def get_assets():
                     cur.execute(query, (pattern,))
                     all_assets.extend(cur.fetchall())
         return all_assets
+    except psycopg.OperationalError as e:
+        logger.error(f"DB Error: {e}")
+        logger.error(
+            f"Failed to connect to database at host='{host}', port='{port}', "
+            f"dbname='{db}', user='{user}'. "
+            f"Make sure DB_HOSTNAME is set to the correct hostname of the PostgreSQL "
+            f"container (e.g. the Docker service name). "
+            f"The default value 'localhost' does not work in Docker, as it refers to "
+            f"the container itself, not the database container."
+        )
+        return []
     except Exception as e:
         logger.error(f"DB Error: {e}")
         return []
