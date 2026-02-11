@@ -23,7 +23,7 @@ immich-offline-remover:
     container_name: immich_offline_remover
     hostname: immich_offline_remover
     env_file:
-        - .env
+        - .env         # We reuse the same .env as immich stack!
     environment:
         IMMICH_URL: http://immich-server:2283
         IMMICH_API_KEY: <YOUR-API-KEY>
@@ -38,6 +38,8 @@ immich-offline-remover:
     restart: unless-stopped
 ```
 
+In this example we use the same `.env` as immich. If you don't use it in your stack, please set `DB_HOSTNAME`, `DB_DATABASE_NAME`, `DB_USERNAME`, `DB_PASSWORD` to your own values.
+
 
 Specific env var used by the container:
 
@@ -50,7 +52,8 @@ Specific env var used by the container:
 | MAX_MISSING_RATIO | `0.1` | Maximum ratio of missing files allowed (e.g., `0.1` for 10%). If the ratio is exceeded, the script will exit without making any changes. It serves as a safeguard. |
 | RUN_AT_FIRST_STARTUP | `false` | If set to `true`, the script will run once at startup (and still follow the CRON_EXPRESSION for the next runs) |
 | IMMICH_UPLOAD_PATH | `/usr/src/app/upload/library/%` | SQL pattern (comma separated) to match asset paths in DB. |
-| DB_HOSTNAME | `localhost` | Hostname of the container running the Immich DB |
+| DB_HOSTNAME | `immich_postgres` | Hostname of the container running the Immich DB. In Docker, you must set this to the database service name or container name (e.g. `database`, `immich_postgres`). |
+| DB_PORT | `5432` | Port of the database |
 | DB_DATABASE_NAME | `immich` | Name of the database |
 | DB_USERNAME | `postgres` | Database user |
 | DB_PASSWORD | `postgres` | Database password |
