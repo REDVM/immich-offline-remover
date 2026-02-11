@@ -40,6 +40,8 @@ immich-offline-remover:
 
 In this example we use the same `.env` as immich. If you don't use it in your stack, please set `DB_HOSTNAME`, `DB_DATABASE_NAME`, `DB_USERNAME`, `DB_PASSWORD` to your own values.
 
+The API key requires the `asset.delete` permission and must be associated to the owner of the assets being deleted.
+
 
 Specific env var used by the container:
 
