@@ -28,14 +28,22 @@ def get_assets():
     path_patterns = os.getenv("IMMICH_UPLOAD_PATH", "/usr/src/app/upload/library/%")
     patterns = [p.strip() for p in path_patterns.split(',')]
     
-    query = 'SELECT id, "originalPath" FROM asset WHERE "originalPath" LIKE %s AND "deletedAt" IS NULL'
+    owner_id = os.environ["IMMICH_USER_ID"]
+
+    query = """
+SELECT id, "originalPath"
+FROM asset
+WHERE "originalPath" LIKE %s
+  AND "deletedAt" IS NULL
+  AND "ownerId" = %s
+"""
     
     all_assets = []
     try:
         with psycopg.connect(conn_str) as conn:
             with conn.cursor() as cur:
                 for pattern in patterns:
-                    cur.execute(query, (pattern,))
+                    cur.execute(query, (pattern, owner_id))
                     all_assets.extend(cur.fetchall())
         return all_assets
     except psycopg.OperationalError as e:
